@@ -4,25 +4,47 @@ Title: Main Web Scraper
 Author: Jason
 Date Created: 2023-10-11
 """
+import csv
 # This program gets dictionary data on the internet and converts to a csv.
 # Libraries
-from urllib.request import urlopen
-from bs4 import BeautifulSoup as bs
+from bs4 import BeautifulSoup as bS
 import re
 from requests import get
 
 regex = r'[^\x00-\x7F]+'
 headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0"}
 
-class Dictionary:
-    def remove_non_ascii(self, text):
-        return re.sub(regex, '', text)
+# For csv file
+words_base = open('generatedWords.txt', 'w')
+words_writer = csv.writer(words_base)
+words_writer.writerow(["Word", "Pronunciation", "Etymology", "Possible Parts of Speech", "Sentence", "Definitions"])
 
-    def get_soup(self, url):
-        response = get(url=url, headers=headers).text
-        response = self.remove_non_ascii(response)
-        soup = bs(response, "html.parser").select(".main-container")[0]
+
+def remove_non_ascii(text):
+    return re.sub(regex, '', text)
+
+
+class Word:
+    def __init__(self, name):
+        self.name = name
+        self.link = f"https://www.merriam-webster.com/dictionary/{name}"
+    definitions = []
+    etymology = ""
+    pronunciation = ""
+    part_of_speech = []
+    sentence = ""
+
+
+class Dictionary:
+
+    def get_soup(self, url, word):
+        raw = get(url=url, headers=headers)
+        response = raw.text
+
+        soup = bS(response, "html.parser").select(".main-container")[0]
         print(soup)
+        pronunciation = soup.select('.play-pron-v2')[0].text.strip()
+
         definitions = []
         for i in range(len(soup.select('.dtText'))):  # add the definitions
             # dtText is the class they belong to
@@ -44,25 +66,27 @@ class Dictionary:
 
         # other
         etymology = soup.select('.et')[0].text.strip()
-        syllables = soup.select('.word-syllables-entry')[0].text.strip()
-        return definitions, part_of_speech_list, etymology
 
+        # Sentence
+        sentence = soup.select('.d-block')[0].text.strip()
+
+        # Create word object
+        word_object = Word(word)
+        word_object.definitions = definitions
+        word_object.etymology = etymology
+        word_object.sentence = sentence
+        word_object.part_of_speech = part_of_speech_list
+        word_object.pronunciation = pronunciation
+        return word_object
 
     def lookup(self, word):
         # base_url = "http://www.thefreedictionary.com/"
         base_url = "https://www.merriam-webster.com/dictionary/"
         query_url = base_url + word
-        return self.get_soup(query_url)
+        return self.get_soup(query_url, word)
 
 
 # Data structures
-class Word:
-    def __init__(self, name):
-        self.name = name
-        self.link = f"https://dictionary.cambridge.org/dictionary/english/{name}"
-    definitions = []
-    etymology = ""
-
 
 # Create a csv file.
 
@@ -74,20 +98,24 @@ def insert_word(word_object):
     :param word_object: word class
     :return:
     """
+    # Format it
+    # Create a possible parts of speech list
+    parts_of_speech = ""
+    for i in range(len(word_object.part_of_speech)):
+        if i != 0:
+            parts_of_speech += ", "
+        parts_of_speech += word_object.part_of_speech[i]
 
+    row = [word_object.name, word_object.pronunciation, word_object.etymology, parts_of_speech,
+           word_object.sentence] + word_object.definitions
 
-# Web scrape.
-def web_scrape(word):
-    """
-    Find info on word and create new word object.
-    :param word: string
-    :return: wordObject
-    """
-    the_dict = Dictionary()
-    definition = the_dict.lookup(word)
-    print(definition)
+    # row.encode('ascii', 'ígnore')
+    words_writer.writerow('á')
 
 
 # Run
 if __name__ == "__main__":
-    web_scrape("beautiful")
+    the_dict = Dictionary()
+    word_info = the_dict.lookup("beautiful")
+    print(word_info)
+    insert_word(word_info)
