@@ -132,8 +132,6 @@ if __name__ == "__main__":
         word_info = the_dict.lookup(the_word)
         if word_info is not None:
             words_data.append(format_word(word_info))
-        if index == 10:
-            break
 
     # For csv file
     with open('words.csv', 'w', encoding="UTF8") as words_base:
