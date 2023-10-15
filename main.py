@@ -15,7 +15,7 @@ regex = r'[^\x00-\x7F]+'
 headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0"}
 
 # For csv file
-words_base = open('generatedWords.txt', 'w')
+words_base = open('words.csv', 'w')
 words_writer = csv.writer(words_base)
 words_writer.writerow(["Word", "Pronunciation", "Etymology", "Possible Parts of Speech", "Sentence", "Definitions"])
 
@@ -84,11 +84,6 @@ class Dictionary:
         base_url = "https://www.merriam-webster.com/dictionary/"
         query_url = base_url + word
         return self.get_soup(query_url, word)
-
-
-# Data structures
-
-# Create a csv file.
 
 
 # Insert into csv file
