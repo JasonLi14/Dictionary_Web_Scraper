@@ -24,6 +24,7 @@ class Word:
     def __init__(self, name):
         self.name = name
         self.link = f"https://www.merriam-webster.com/dictionary/{name}"
+        self.letters_amount = len(name)
     definitions = []
     etymology = ""
     pronunciation = ""
@@ -100,7 +101,7 @@ def format_word(word_object):
             parts_of_speech += ", "
         parts_of_speech += word_object.part_of_speech[i]
 
-    row = [word_object.name, word_object.pronunciation, word_object.etymology, parts_of_speech,
+    row = [word_object.name, word_object.letters_amount, word_object.pronunciation, word_object.etymology, parts_of_speech,
            word_object.sentence] + word_object.definitions
     return row
 
@@ -131,10 +132,13 @@ if __name__ == "__main__":
         word_info = the_dict.lookup(the_word)
         if word_info is not None:
             words_data.append(format_word(word_info))
+        if index == 10:
+            break
 
     # For csv file
     with open('words.csv', 'w', encoding="UTF8") as words_base:
         words_writer = csv.writer(words_base)
         words_writer.writerow(
-            ["Word", "Pronunciation", "Etymology", "Possible Parts of Speech", "Sentence", "Definitions"])
+            ["Word", "Number of Letters", "Pronunciation", "Etymology",
+             "Possible Parts of Speech", "Sentence", "Definitions"])
         words_writer.writerows(words_data)
