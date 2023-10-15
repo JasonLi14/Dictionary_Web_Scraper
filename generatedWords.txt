@@ -1,0 +1,2 @@
+Word,Pronunciation,Etymology,Possible Parts of Speech,Sentence,Definitions
+á
