@@ -38,7 +38,10 @@ class Dictionary:
         response = raw.text
 
         soup = bS(response, "html.parser").select(".main-container")[0]
-        pronunciation = soup.select('.play-pron-v2')[0].text.strip()
+        if len(soup.select('.play-pron-v2')) > 0:
+            pronunciation = soup.select('.play-pron-v2')[0].text.strip()
+        else:
+            return None
 
         definitions = []
         for i in range(len(soup.select('.dtText'))):  # add the definitions
@@ -55,12 +58,14 @@ class Dictionary:
 
         # get part of speech
         part_of_speech_list = []
-        for i in range(len(soup.select('.parts-of-speech'))):  # add the definitions
-            part_of_speech = soup.select('.parts-of-speech')[i].text.strip()
+        for j in range(len(soup.select('.parts-of-speech'))):  # add the definitions
+            part_of_speech = soup.select('.parts-of-speech')[j].text.strip()
             part_of_speech_list.append(part_of_speech)
 
         # other
-        etymology = soup.select('.et')[0].text.strip()
+        etymology = "Not available."
+        if len(soup.select('.et')) > 0:
+            etymology = soup.select('.et')[0].text.strip()
 
         # Sentence
         sentence = soup.select('.d-block')[0].text.strip()
@@ -115,16 +120,17 @@ if __name__ == "__main__":
     # get the definitions
     words_data = []
     index = 1
-    for i in words_to_insert:
+    for the_word in words_to_insert:
         # if word is already inserted, i.e. no repeats
-        if inserted_words[i]:
+        if inserted_words[the_word]:
             continue
         else:
-            inserted_words[i] = True
-        print(index, i)
+            inserted_words[the_word] = True
+        print(index, the_word)
         index += 1
-        word_info = the_dict.lookup("beautiful")
-        words_data.append(format_word(word_info))
+        word_info = the_dict.lookup(the_word)
+        if word_info is not None:
+            words_data.append(format_word(word_info))
 
     # For csv file
     with open('words.csv', 'w', encoding="UTF8") as words_base:
