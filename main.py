@@ -14,10 +14,6 @@ from requests import get
 regex = r'[^\x00-\x7F]+'
 headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0"}
 
-# For csv file
-words_base = open('words.csv', 'w')
-words_writer = csv.writer(words_base)
-words_writer.writerow(["Word", "Pronunciation", "Etymology", "Possible Parts of Speech", "Sentence", "Definitions"])
 
 
 def remove_non_ascii(text):
@@ -42,7 +38,6 @@ class Dictionary:
         response = raw.text
 
         soup = bS(response, "html.parser").select(".main-container")[0]
-        print(soup)
         pronunciation = soup.select('.play-pron-v2')[0].text.strip()
 
         definitions = []
@@ -80,14 +75,13 @@ class Dictionary:
         return word_object
 
     def lookup(self, word):
-        # base_url = "http://www.thefreedictionary.com/"
         base_url = "https://www.merriam-webster.com/dictionary/"
         query_url = base_url + word
         return self.get_soup(query_url, word)
 
 
 # Insert into csv file
-def insert_word(word_object):
+def format_word(word_object):
     """
     Inserts word into csv file.
     :param word_object: word class
@@ -103,14 +97,38 @@ def insert_word(word_object):
 
     row = [word_object.name, word_object.pronunciation, word_object.etymology, parts_of_speech,
            word_object.sentence] + word_object.definitions
-
-    # row.encode('ascii', 'ígnore')
-    words_writer.writerow('á')
+    return row
 
 
 # Run
 if __name__ == "__main__":
     the_dict = Dictionary()
-    word_info = the_dict.lookup("beautiful")
-    print(word_info)
-    insert_word(word_info)
+
+    # get all the words
+    words_to_insert = []
+    inserted_words = {}
+    with open("generatedWords.txt", "r", encoding="UTF8") as words_list:
+        for i in words_list:
+            words_to_insert.append(i.rstrip())
+            inserted_words[i.rstrip()] = False
+
+    # get the definitions
+    words_data = []
+    index = 1
+    for i in words_to_insert:
+        # if word is already inserted, i.e. no repeats
+        if inserted_words[i]:
+            continue
+        else:
+            inserted_words[i] = True
+        print(index, i)
+        index += 1
+        word_info = the_dict.lookup("beautiful")
+        words_data.append(format_word(word_info))
+
+    # For csv file
+    with open('words.csv', 'w', encoding="UTF8") as words_base:
+        words_writer = csv.writer(words_base)
+        words_writer.writerow(
+            ["Word", "Pronunciation", "Etymology", "Possible Parts of Speech", "Sentence", "Definitions"])
+        words_writer.writerows(words_data)
