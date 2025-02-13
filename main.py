@@ -2,7 +2,6 @@
 """
 Title: Main Web Scraper
 Author: Jason
-Date Created: 2023-10-11
 """
 import csv
 # This program gets dictionary data on the internet and converts to a csv.
